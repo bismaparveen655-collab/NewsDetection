@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="NewsGuard Desk — a pattern classifier that flags writing closer to fake or true news.">
+    <title>NewsGuard Desk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="grain" aria-hidden="true"></div>
+    <a class="skip-link" href="#analyzer">Skip to the desk</a>
+
+    <header class="navbar">
+        <div class="container navbar-inner">
+            <a href="#" class="logo">
+                <span class="logo-mark" aria-hidden="true">NG</span>
+                <span class="logo-text">
+                    NewsGuard
+                    <small>Signal Desk</small>
+                </span>
+            </a>
+
+            <nav class="nav-links" id="navLinks">
+                <a href="#analyzer">The Desk</a>
+                <a href="#how-it-works">Method</a>
+                <a href="#about">Limits</a>
+            </nav>
+
+            <div class="nav-actions">
+                <div class="system-status" id="statusPill">
+                    <span class="status-dot"></span>
+                    <span id="statusText">SIGNAL LIVE</span>
+                </div>
+                <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu" aria-expanded="false">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="ticker" aria-hidden="true">
+        <div class="ticker-track">
+            <span>Pattern scan · not a fact check</span>
+            <span>Headline + body</span>
+            <span>LinearSVC · TF-IDF</span>
+            <span>Doubt first, then verify</span>
+            <span>Pattern scan · not a fact check</span>
+            <span>Headline + body</span>
+            <span>LinearSVC · TF-IDF</span>
+            <span>Doubt first, then verify</span>
+        </div>
+    </div>
+
+    <section class="hero">
+        <div class="container hero-container">
+            <div class="hero-content">
+                <p class="kicker">Night desk · 2026 edition</p>
+                <h1>
+                    Doubt the headline.
+                    <em>Check the pattern.</em>
+                </h1>
+                <p class="lede">
+                    Drop in a story. The desk compares its language to thousands of labeled articles
+                    and returns a verdict: <b>Suspect</b> or <b>Credible</b> — plus a score you can actually read.
+                </p>
+                <div class="hero-actions">
+                    <a href="#analyzer" class="hero-button">Open the desk</a>
+                    <button class="hero-ghost" id="trySampleHero" type="button">Load a sample brief</button>
+                </div>
+                <ul class="hero-notes">
+                    <li>Works on pasted text only</li>
+                    <li>Flags writing style, not sources</li>
+                    <li>Never a substitute for a newsroom</li>
+                </ul>
+            </div>
+
+            <aside class="signal-board" aria-hidden="true">
+                <div class="board-top">
+                    <span>Live tape</span>
+                    <span class="board-pulse">scanning</span>
+                </div>
+                <div class="board-meter">
+                    <span>Suspect</span>
+                    <div class="meter-line"><i></i></div>
+                    <span>Credible</span>
+                </div>
+                <div class="board-cards">
+                    <article class="tape-card suspect">
+                        <strong>SUSPECT</strong>
+                        <p>Sensational cadence, thin sourcing cues.</p>
+                    </article>
+                    <article class="tape-card credible">
+                        <strong>CREDIBLE</strong>
+                        <p>Measured tone, report-like structure.</p>
+                    </article>
+                </div>
+                <div class="board-foot">
+                    Decision score is a LinearSVC margin, not a probability.
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <section class="ribbon">
+        <div class="container ribbon-grid">
+            <div>
+                <span>01</span>
+                <strong>Paste</strong>
+                <p>Headline and body, as published.</p>
+            </div>
+            <div>
+                <span>02</span>
+                <strong>Clean</strong>
+                <p>Noise stripped. Words weighted.</p>
+            </div>
+            <div>
+                <span>03</span>
+                <strong>Score</strong>
+                <p>Margin leans fake or true.</p>
+            </div>
+            <div>
+                <span>04</span>
+                <strong>Verify</strong>
+                <p>Then check a real newsroom.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="analyzer-section" id="analyzer">
+        <div class="container">
+            <div class="section-heading">
+                <p class="kicker">The desk</p>
+                <h2>Bring a story. Leave with a signal.</h2>
+                <p>Paste the original headline and as much of the article as you can. The model never browses the web.</p>
+            </div>
+
+            <div class="analyzer-grid">
+                <article class="panel">
+                    <header class="panel-head">
+                        <h3>Intake</h3>
+                        <p>Raw copy only. No links required.</p>
+                    </header>
+                    <form class="panel-body" id="analyzeForm" novalidate>
+                        <div class="form-group field-group">
+                            <div class="form-label-row">
+                                <label class="form-label" for="title">Headline</label>
+                                <span class="counter" id="titleCount">0 / 500</span>
+                            </div>
+                            <input id="title" name="title" type="text" maxlength="500" placeholder="The line readers saw first" autocomplete="off">
+                            <p class="helper-text field-error" id="titleError" hidden></p>
+                        </div>
+
+                        <div class="form-group field-group">
+                            <div class="form-label-row">
+                                <label class="form-label" for="articleText">Body</label>
+                                <span class="counter" id="textCount">0 / 50,000</span>
+                            </div>
+                            <textarea id="articleText" name="text" maxlength="50000" placeholder="Paste the article as it appeared — quotes, dateline, and all."></textarea>
+                            <p class="helper-text field-error" id="textError" hidden></p>
+                        </div>
+
+                        <div class="button-row">
+                            <button class="btn btn-primary" id="analyzeBtn" type="submit">
+                                <span id="btnText">Run the scan</span>
+                            </button>
+                            <button class="btn btn-secondary" id="sampleBtn" type="button">Sample brief</button>
+                            <button class="btn btn-secondary" id="clearBtn" type="button">Clear desk</button>
+                        </div>
+                    </form>
+                </article>
+
+                <aside class="panel result-card">
+                    <header class="panel-head">
+                        <h3>Verdict</h3>
+                        <p>Updates after every scan.</p>
+                    </header>
+                    <div class="result-body">
+                        <div class="result-status" id="resultStatus">STANDBY</div>
+
+                        <div id="emptyResult">
+                            <div class="result-main">
+                                <div class="result-icon">⊘</div>
+                                <div class="result-label">No copy yet</div>
+                                <div class="prediction idle">—</div>
+                                <p class="result-message">Load a sample or paste a story. The tape stays quiet until you run a scan.</p>
+                            </div>
+                        </div>
+
+                        <div id="analysisResult" class="hidden">
+                            <div class="result-main" id="verdictBox">
+                                <div class="result-icon" id="resultIcon">✓</div>
+                                <div class="result-label" id="resultTitle">Credible lean</div>
+                                <div class="prediction" id="prediction">TRUE</div>
+                                <p class="result-message" id="resultMessage">This copy sits closer to the true-news side of the model.</p>
+                            </div>
+                            <div class="score-section">
+                                <div class="score-header">
+                                    <span class="score-title">Margin</span>
+                                    <span class="score-value" id="scoreValue">0.00</span>
+                                </div>
+                                <div class="score-bar">
+                                    <div class="score-fill" id="scoreFill"></div>
+                                    <span class="score-marker" id="scoreMarker"></span>
+                                </div>
+                                <p class="score-note">Left of center leans suspect. Right of center leans credible. This is style, not truth.</p>
+                            </div>
+                        </div>
+
+                        <div id="errorResult" class="hidden">
+                            <div class="result-main error-state">
+                                <div class="result-icon">!</div>
+                                <div class="result-label">Desk interruption</div>
+                                <div class="prediction">HOLD</div>
+                                <p class="result-message" id="errorMessage">The scan could not finish.</p>
+                                <button class="btn btn-secondary retry-btn" id="retryBtn" type="button">Run again</button>
+                            </div>
+                        </div>
+
+                        <div class="model-info">
+                            <div class="info-box">
+                                <span>Engine</span>
+                                <strong>LinearSVC</strong>
+                            </div>
+                            <div class="info-box">
+                                <span>Lens</span>
+                                <strong>TF-IDF</strong>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </section>
+
+    <section class="how-section" id="how-it-works">
+        <div class="container">
+            <div class="section-heading">
+                <p class="kicker">Method</p>
+                <h2>What the desk actually does</h2>
+                <p>It is a language classifier, not an investigator. Here is the short version.</p>
+            </div>
+            <div class="steps">
+                <article class="step">
+                    <div class="step-number">I</div>
+                    <h3>Intake the copy</h3>
+                    <p>You paste the headline and body. Longer text gives the model more pattern to work with.</p>
+                </article>
+                <article class="step">
+                    <div class="step-number">II</div>
+                    <h3>Weigh the words</h3>
+                    <p>TF-IDF turns the story into a bag of distinctive terms. Common filler drops away.</p>
+                </article>
+                <article class="step">
+                    <div class="step-number">III</div>
+                    <h3>Draw a margin</h3>
+                    <p>LinearSVC places the story on a line between previously labeled fake and true writing.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="about-section" id="about">
+        <div class="container about-wrap">
+            <div class="about-copy">
+                <p class="kicker">Limits</p>
+                <h2>A useful warning. Not a verdict of record.</h2>
+                <p>
+                    NewsGuard Desk was trained on labeled news text. It notices cadence, vocabulary, and structure.
+                    It cannot confirm a quote, a photo, a chart, or a live event.
+                </p>
+                <p>
+                    Treat a <em>Suspect</em> flag as a reason to slow down. Treat a <em>Credible</em> flag as
+                    “this writes like reporting,” not “this is proven.”
+                </p>
+            </div>
+            <ul class="limit-list">
+                <li><span>Does</span> Compare writing to labeled fake/true news</li>
+                <li><span>Does not</span> Search the web or call a fact-checker</li>
+                <li><span>Does not</span> Judge images, video, or speaker identity</li>
+                <li><span>Never</span> Use this as legal, medical, or political proof</li>
+            </ul>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container footer-inner">
+            <div class="footer-brand">NewsGuard Desk</div>
+            <p>Educational classifier. Cross-check important claims with a trusted newsroom.</p>
+        </div>
+    </footer>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
